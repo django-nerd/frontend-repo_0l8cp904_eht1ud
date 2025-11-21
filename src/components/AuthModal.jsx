@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Github, LucideIcon } from 'lucide-react'
+import { Mail, Github } from 'lucide-react'
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 export default function AuthModal({ open, onClose }) {
   useEffect(() => {
@@ -8,6 +10,31 @@ export default function AuthModal({ open, onClose }) {
     if (open) document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
+
+  const handleGoogle = () => {
+    window.location.href = `${BACKEND_URL}/auth/google`
+  }
+  const handleGithub = () => {
+    window.location.href = `${BACKEND_URL}/auth/github`
+  }
+  const handleMagic = async () => {
+    const email = prompt('Enter your email for a magic link:')
+    if (!email) return
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/magic-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.backend_verify) {
+        window.location.href = `${BACKEND_URL}${data.backend_verify}`
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -34,13 +61,13 @@ export default function AuthModal({ open, onClose }) {
               <p className="text-sm text-white/70 mb-4">Sign in to continue your Arcyn journey</p>
 
               <div className="space-y-3">
-                <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
+                <button onClick={handleMagic} className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
                   <Mail size={18} /> Continue with Email
                 </button>
-                <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
+                <button onClick={handleGoogle} className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
                   <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-4 h-4" alt="Google"/> Continue with Google
                 </button>
-                <button className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
+                <button onClick={handleGithub} className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white py-3 transition">
                   <Github size={18} /> Continue with GitHub
                 </button>
               </div>
